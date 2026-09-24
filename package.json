@@ -1,0 +1,16 @@
+{
+  "name": "wikimasters-bot",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "grammy": "^1.46.0"
+  }
+}
