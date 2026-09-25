@@ -4,31 +4,37 @@ import { ensureSession } from "../session.ts";
 import { bulkDiscardCards, getProfile } from "../api.ts";
 import { log } from "../core.ts";
 import { humanDelay } from "../stealth.ts";
-import { getMyCollectionDirect, getPublicCards, getWishlistCardIds, removeFromWishlist } from "../supabase.ts";
+import { getMyCollectionDirect, getPublicCards, getTaggedUserCardIds, getWishlistCardIds, removeFromWishlist } from "../supabase.ts";
 
 /**
- * @dangerous Discard every unstarred C-rarity card (+1 wikibidou each).
- * IRREVERSIBLE. Without --yes it only previews. Starred cards are never touched.
+ * @dangerous Discard every unstarred, untagged C-rarity card (+1 wikibidou each).
+ * IRREVERSIBLE. Without --yes it only previews. Starred or tagged cards are never touched.
  */
 export async function cmdRecycle(confirmed: boolean, limit: number, onlyIds?: string[]): Promise<string[]> {
   const s = await ensureSession();
   let ids: string[];
   if (onlyIds) {
-    ids = onlyIds;
+    // Frozen preview ids (Telegram confirm): re-check tags so a card tagged
+    // between preview and confirm is not discarded.
+    const tagged = await getTaggedUserCardIds(s, onlyIds);
+    ids = onlyIds.filter((id) => !tagged.has(id));
+    if (ids.length !== onlyIds.length) log(`skipped ${onlyIds.length - ids.length} newly-tagged (kept)`);
   } else {
     // Own collection via direct reads (no /api paging).
     const all = await getMyCollectionDirect(s);
-    const targets = all.filter((it) => (it.card.rarity ?? "").toUpperCase() === "C" && !it.starred);
+    const unstarred = all.filter((it) => (it.card.rarity ?? "").toUpperCase() === "C" && !it.starred);
+    const tagged = await getTaggedUserCardIds(s, unstarred.map((t) => t.id));
+    const targets = unstarred.filter((t) => !tagged.has(t.id));
     const byTitle = new Map<string, number>();
     for (const t of targets) byTitle.set(t.card.wikipedia_title, (byTitle.get(t.card.wikipedia_title) ?? 0) + (t.count ?? 1));
-    log(`${targets.length} unstarred C copies (${byTitle.size} distinct titles, ~+${targets.length} WB)`);
+    log(`${targets.length} unstarred untagged C copies (${byTitle.size} distinct titles, ~+${targets.length} WB, ${tagged.size} tagged kept)`);
     // Compact preview: top 10 titles max — full per-card dumps blow up chat replies.
     for (const [title, n] of [...byTitle.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10)) log(`  - ${title} x${n}`);
     if (byTitle.size > 10) log(`  ... +${byTitle.size - 10} more titles`);
     ids = targets.slice(0, limit).map((t) => t.id);
     if (targets.length > limit) log(`capped at --limit ${limit} (${targets.length - limit} left for next run)`);
     if (!confirmed) {
-      log(`PREVIEW only — re-run with --yes to discard ${ids.length} cards (~+${ids.length} WB). Star any keeper first.`);
+      log(`PREVIEW only — re-run with --yes to discard ${ids.length} cards (~+${ids.length} WB). Star/tag any keeper first.`);
       return ids;
     }
   }

@@ -178,14 +178,19 @@ export async function startTelegramBot(): Promise<void> {
         break;
       }
       case "top":
-        await replyCaptured(send, () => cmdTop(parseNum(argText, 10), ["C", "PC"]));
+        await replyCaptured(send, () =>
+          cmdTop(parseNum(argText.split(/\s+/)[0], 10), ["C", "PC"], {
+            excludeStarred: /exclude-starred|no-starred/i.test(argText),
+            excludeTagged: /exclude-tagged|no-tagged/i.test(argText),
+          }),
+        );
         break;
       case "recycle": {
         const limit = Math.min(parseNum(argText || undefined, 200), 500);
         await previewDangerous(
           ctx,
           async () => ({ ...(await previewIds(ctx, "recycle", () => cmdRecycle(false, limit))), kind: "recycle" as const }),
-          "Discard the frozen list above? Starred cards were never included.",
+          "Discard the frozen list above? Starred/tagged cards were never included.",
         );
         break;
       }
@@ -232,6 +237,7 @@ export async function startTelegramBot(): Promise<void> {
       `last run: ${a.lastRunAt ?? "—"}`,
       `last outcome: ${a.lastOutcome}`,
       `ticks: ${a.ticks} | opened: ${a.opened} | failures: ${a.failures}`,
+      `notify live: ${a.notifyLive ? "🟢 running" : "🔴 stopped"} (${a.notifyOutcome})`,
     ].join("\n");
   }
 
@@ -264,12 +270,12 @@ export async function startTelegramBot(): Promise<void> {
     { command: "claim", description: "🗳 claim free packs" },
     { command: "watch", description: "👀 notifications snapshot" },
     { command: "notify", description: "🔔 poll notifications once" },
-    { command: "top", description: "🏆 top unstarred by value" },
+    { command: "top", description: "🏆 top by value" },
     { command: "settle", description: "✅ settle finished wins" },
-    { command: "recycle", description: "♻️ discard unstarred C (confirm)" },
+    { command: "recycle", description: "♻️ discard untagged unstarred C (confirm)" },
     { command: "bid", description: "💰 auto-bid deals (confirm)" },
     { command: "wishlist_clean", description: "🧹 drop owned wishlist (confirm)" },
-    { command: "auto_start", description: "🤖 start auto job" },
+    { command: "auto_start", description: "🤖 start auto job + live notify" },
     { command: "auto_stop", description: "🛑 stop auto job" },
     { command: "auto_status", description: "📟 auto job status" },
     { command: "help", description: "❓ help" },

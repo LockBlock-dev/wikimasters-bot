@@ -36,9 +36,9 @@ where server logic lives (packs, bids/settles/discards, claims, billing).
 | `open` | Open one pack now (auto-verifies if needed) |
 | `claim` | Claim free pro-daily / special / grace packs when available |
 | `loop [--max-opens N]` | Verify → claim → settle → open, waiting for regen |
-| `top [--limit N] [--skip C,PC]` | Top unstarred cards by average market value (fully direct: collection + bulk settled sales) |
+| `top [--limit N] [--skip C,PC]` | Top cards by average market value (fully direct: collection + bulk settled sales; starred+tagged included, --exclude-starred/--exclude-tagged to filter) |
 | `bid [--yes] [--max-price N] [--factor F] [--min-secs S] [--max-total N] [--limit N] [--sort recent\|ending_soon]` | Bid `minNextBid()` on listings under `avg × factor`. Direct scan + pricing, `--limit` counts priced candidates. Preview without `--yes`; daily spend file `.bid-spend.json` |
-| `recycle [--yes] [--limit N]` | Discard ALL unstarred C cards (+1 WB each). Preview without `--yes`; end balance from one profile read, start derived |
+| `recycle [--yes] [--limit N]` | Discard ALL untagged unstarred C cards (+1 WB each). Preview without `--yes`; end balance from one profile read, start derived |
 | `settle` | Settle finished wins via direct `won` bucket (collect cards/funds) |
 | `wishlist-clean [--yes]` | Drop wishlisted cards you already own. Preview without `--yes` |
 | `watch` | One-shot dump: notifications, trades, marketplace, specials (direct reads) |
@@ -53,7 +53,7 @@ where server logic lives (packs, bids/settles/discards, claims, billing).
   never blocked.
 - Dangerous CLI commands preview without `--yes`. Telegram dangerous flows
   preview + inline ✅/❌ Confirm on frozen IDs (bids revalidate live price).
-- Starred cards are never touched by `recycle`/`top`.
+- Starred/tagged cards are never touched by `recycle`/`top`.
 
 ## Stealth
 
@@ -80,6 +80,8 @@ session: `bun run index.ts bootstrap --cookie-file curl.txt`.
 `bun run index.ts telegram` — owner-gated polling bot (`TELEGRAM_OWNER_ID`
 checked on every update, strangers dropped silently). Slash menu with emojis
 (`setMyCommands`), `/menu` button submenus (Packs/Market/Collection/Daemon),
-single `auto` job (verify + claim + settle + open, regen-aware):
+single `auto` job (verify + claim + settle + open, regen-aware) with the
+live notifications feed running alongside it (realtime + resync safety net,
+same as `notify` live mode):
 `/auto_start` · `/auto_stop` · `/auto_status`. All handlers and job ticks
 share one mutex, so replies never interleave.

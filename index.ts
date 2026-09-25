@@ -25,10 +25,10 @@ Usage:
   bun run index.ts notify [--once] [--interval S]
                                            live realtime feed + periodic resync safety net
                                            (--once = single poll, --interval = resync secs)
-  bun run index.ts top [--limit N] [--skip C,PC]
-                                           top unstarred cards by average market value (commons skipped by default)
+  bun run index.ts top [--limit N] [--skip C,PC] [--exclude-starred] [--exclude-tagged]
+                                           top cards by average market value (commons skipped by default, starred+tagged included)
   bun run index.ts recycle [--yes] [--limit N]
-                                           discard ALL unstarred C cards (+1 WB each). Preview without --yes
+                                           discard ALL untagged unstarred C cards (+1 WB each). Preview without --yes
   bun run index.ts bid [--yes] [--max-price N] [--factor F] [--min-secs S] [--max-total N] [--limit N] [--sort recent|ending_soon]
                                            auto-bid deals (<= avg*factor). Preview without --yes
   bun run index.ts settle                  settle finished wins (collect cards/funds)
@@ -103,7 +103,7 @@ async function main(): Promise<void> {
     const si = rest.indexOf("--skip");
     // Default: skip common tiers. `--skip none` includes everything, `--skip C` only skips C.
     const skip = si >= 0 ? (rest[si + 1] ?? "").split(",").map((x) => x.trim()).filter((x) => x && x.toLowerCase() !== "none") : ["C", "PC"];
-    return cmdTop(limit, skip);
+    return cmdTop(limit, skip, { excludeStarred: rest.includes("--exclude-starred"), excludeTagged: rest.includes("--exclude-tagged") });
   }
   if (cmd === "refresh") {
     const s = await loadSession();

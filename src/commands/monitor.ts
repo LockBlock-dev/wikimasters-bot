@@ -54,11 +54,25 @@ export async function cmdNotify(once: boolean, intervalS: number): Promise<void>
   }
 }
 
-/** Connects the realtime feed; never returns (throws when it must restart). */
-async function runNotifyLive(
+/** Interruptible sleep for the live loop — a stop request lands within ~5s. */
+async function sleepStoppable(ms: number, shouldStop: () => boolean): Promise<boolean> {
+  let left = ms;
+  while (left > 0) {
+    if (shouldStop()) return false;
+    await new Promise((r) => setTimeout(r, Math.min(left, 5000)));
+    left -= 5000;
+  }
+  return !shouldStop();
+}
+
+/** Connects the realtime feed. Returns when shouldStop() is true (graceful);
+ * throws when the connection must be re-established by the caller.
+ * Always closes the socket before returning/throwing. */
+export async function runNotifyLive(
   telegram: { botToken: string; chatId: string } | undefined,
   resyncS: number,
-): Promise<never> {
+  shouldStop: () => boolean = () => false,
+): Promise<void> {
   const onInsert = (n: NotificationItem): void => {
     void handleLiveNotification(n, { telegram, log }).catch((e) =>
       log(`notify live handler failed: ${e instanceof Error ? e.message : e}`),
@@ -67,33 +81,38 @@ async function runNotifyLive(
   const client = await WikiClient.boot();
   let s = await client.session();
   const userId = s.user.id;
+  if (!telegram) log("notify: live with no Telegram target (needs TELEGRAM_BOT_TOKEN + TELEGRAM_OWNER_ID + TELEGRAM_LOGS=1) — events will only log");
   // Baseline + backlog flush, same as one poll.
   const r = await checkNotifications(s, { telegram, log });
   log(`notify: live baseline (${r.total} total, ${r.fresh} fresh, ${r.forwarded} forwarded), resync every ${resyncS}s`);
   const mgr = await RealtimeManager.connect(s);
-  await mgr.add((sb) => subscribeNotifications(sb, userId, onInsert));
-  log("notify: realtime subscribed");
-  let token = client.token;
-  let lastResync = Date.now();
-  for (;;) {
-    await jitteredSleep(30_000, 0.2);
-    s = await client.session();
-    if (s.access_token !== token) {
-      // Token rotated: fresh socket + resubscribe via the tracked factories.
-      log("notify: session rotated, reconnecting realtime");
-      await mgr.reconnect(s);
-      token = client.token;
-      lastResync = Date.now();
-      continue;
-    }
-    if (Date.now() - lastResync >= resyncS * 1000) {
-      try {
-        const r2 = await checkNotifications(s, { telegram, log });
-        if (r2.forwarded > 0) log(`notify: resync forwarded ${r2.forwarded}/${r2.fresh} fresh`);
-      } catch (e) {
-        log(`notify resync failed: ${e instanceof Error ? e.message : e}`);
+  try {
+    await mgr.add((sb) => subscribeNotifications(sb, userId, onInsert));
+    log("notify: realtime subscribed");
+    let token = client.token;
+    let lastResync = Date.now();
+    for (;;) {
+      if (!(await sleepStoppable(30_000, shouldStop))) return;
+      s = await client.session();
+      if (s.access_token !== token) {
+        // Token rotated: fresh socket + resubscribe via the tracked factories.
+        log("notify: session rotated, reconnecting realtime");
+        await mgr.reconnect(s);
+        token = client.token;
+        lastResync = Date.now();
+        continue;
       }
-      lastResync = Date.now();
+      if (Date.now() - lastResync >= resyncS * 1000) {
+        try {
+          const r2 = await checkNotifications(s, { telegram, log });
+          if (r2.forwarded > 0) log(`notify: resync forwarded ${r2.forwarded}/${r2.fresh} fresh`);
+        } catch (e) {
+          log(`notify resync failed: ${e instanceof Error ? e.message : e}`);
+        }
+        lastResync = Date.now();
+      }
     }
+  } finally {
+    await mgr.close();
   }
 }

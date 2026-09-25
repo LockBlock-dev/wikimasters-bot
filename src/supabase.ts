@@ -492,6 +492,22 @@ export async function removeTagFromCards(
   return removed;
 }
 
+/** user_card ids carrying ANY tag, looked up in 100-slices. */
+export async function getTaggedUserCardIds(
+  session: WikiSession,
+  userCardIds: string[],
+): Promise<Set<string>> {
+  const sb = supabaseFor(session);
+  const out = new Set<string>();
+  for (const slice of chunkIds(userCardIds, 100)) {
+    if (slice.length === 0) continue;
+    const { data, error } = await sb.from("user_card_tags").select("user_card_id").in("user_card_id", slice);
+    throwOnError(error, "getTaggedUserCardIds");
+    for (const r of (data ?? []) as Array<{ user_card_id: string }>) out.add(r.user_card_id);
+  }
+  return out;
+}
+
 /** user_card ids carrying a tag, looked up in 100-slices (site pattern). */
 export async function getTagCardIds(
   session: WikiSession,

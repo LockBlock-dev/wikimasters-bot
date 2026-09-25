@@ -12,31 +12,43 @@ import {
   getMyMarketBuckets,
   getPublicCards,
   getSettledSales,
+  getTaggedUserCardIds,
   statsForSales,
 } from "../supabase.ts";
 
-export async function cmdTop(limit: number, skip: string[]): Promise<void> {
+export interface TopOpts {
+  excludeStarred?: boolean;
+  excludeTagged?: boolean;
+}
+
+export async function cmdTop(limit: number, skip: string[], opts: TopOpts = {}): Promise<void> {
   const s = await ensureSession();
   const skipSet = new Set(skip.map((r) => r.toUpperCase()));
   // Own collection via direct reads (no /api paging).
   const all = await getMyCollectionDirect(s);
+  const pool = all.filter((it) => !skipSet.has((it.card.rarity ?? "").toUpperCase()));
+  const skippedCommon = all.length - pool.length;
+  let tagged = new Set<string>();
+  let skippedTagged = 0;
+  if (opts.excludeTagged) {
+    tagged = await getTaggedUserCardIds(s, pool.map((t) => t.id));
+  }
   const seen = new Map();
   let skippedStarred = 0;
-  let skippedCommon = 0;
-  for (const it of all) {
-    if (it.starred) {
-      skippedStarred++;
+  for (const it of pool) {
+    if (tagged.has(it.id)) {
+      skippedTagged++;
       continue;
     }
-    if (skipSet.has((it.card.rarity ?? "").toUpperCase())) {
-      skippedCommon++;
+    if (opts.excludeStarred && it.starred) {
+      skippedStarred++;
       continue;
     }
     if (seen.has(it.card_id)) continue;
     seen.set(it.card_id, it);
   }
   const candidates = [...seen.values()];
-  log(`${all.length} copies (${skippedStarred} starred, ${skippedCommon} ${[...skipSet].join("/") || "none"} skipped), ${candidates.length} distinct candidates — pricing...`);
+  log(`${all.length} copies (${skippedStarred} starred skipped, ${skippedTagged} tagged skipped, ${skippedCommon} ${[...skipSet].join("/") || "none"} skipped), ${candidates.length} distinct candidates — pricing...`);
   // Bulk pricing via direct `auctions` reads (settled_sold). No API fallback:
   // cards with no settled sales are skipped.
   const priced: Array<{ title: string; rarity: string; avg: number; latest?: number; count?: number }> = [];
@@ -48,9 +60,9 @@ export async function cmdTop(limit: number, skip: string[]): Promise<void> {
     priced.push({ title: it.card.wikipedia_title, rarity, avg: st.average, latest: st.latest, count: st.count });
   }
   priced.sort((a, b) => b.avg - a.avg);
-  log(`top ${Math.min(limit, priced.length)} unstarred by average market value (${priced.length} with sales data):`);
+  log(`top ${Math.min(limit, priced.length)} by average market value (${priced.length} with sales data):`);
   priced.slice(0, limit).forEach((c, i) => {
-    log(`  ${i + 1}. ${c.title} [${c.rarity}] avg=${c.avg}${c.latest != null ? ` latest=${c.latest}` : ""}${c.count != null ? ` sales=${c.count}` : ""}`);
+    log(`  ${i + 1}. ${c.title} [${c.rarity}] avg=${Math.round(c.avg)}${c.latest != null ? ` latest=${c.latest}` : ""}${c.count != null ? ` sales=${c.count}` : ""}`);
   });
 }
 
