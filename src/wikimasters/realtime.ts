@@ -8,7 +8,7 @@
 // - auction:${id} broadcast, private channel (BID, UPDATE) — needs setAuth
 // - chat:${a}:${b} + dms-list:${uid} postgres_changes on chat_messages
 import { createClient, type RealtimeChannel, type SupabaseClient } from "@supabase/supabase-js";
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./config.ts";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "../config.ts";
 import type {
   AuctionBidPayload,
   BattleBroadcastEvent,

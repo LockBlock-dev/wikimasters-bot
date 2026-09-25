@@ -6,7 +6,7 @@ import {
   refreshSession,
   saveSession,
   sessionFromCookieHeader,
-} from "../session.ts";
+} from "../wikimasters/session.ts";
 import { log } from "../core.ts";
 
 export async function cmdLogin(): Promise<void> {

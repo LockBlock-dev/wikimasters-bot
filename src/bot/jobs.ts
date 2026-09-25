@@ -4,10 +4,10 @@
 // while auto runs. Manual start/stop only — everything is stopped on
 // (re)start. Ticks run through the shared runExclusive mutex so they never
 // interleave with Telegram commands.
-import { loopTick, type LoopTickState } from "./commands/packs.ts";
-import { runNotifyLive } from "./commands/monitor.ts";
-import { env } from "./config.ts";
-import { log, runExclusive } from "./core.ts";
+import { loopTick, type LoopTickState } from "../commands/packs.ts";
+import { runNotifyLive } from "../commands/monitor.ts";
+import { env } from "../config.ts";
+import { log, runExclusive } from "../core.ts";
 
 export interface AutoStatus {
   running: boolean;

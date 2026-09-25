@@ -1,10 +1,10 @@
 // Collection commands: recycle (discard commons), wishlist-clean.
 import { isDryRun } from "../config.ts";
-import { ensureSession } from "../session.ts";
-import { bulkDiscardCards, getProfile } from "../api.ts";
+import { ensureSession } from "../wikimasters/session.ts";
+import { bulkDiscardCards, getProfile } from "../wikimasters/api.ts";
 import { log } from "../core.ts";
-import { humanDelay } from "../stealth.ts";
-import { getMyCollectionDirect, getPublicCards, getTaggedUserCardIds, getWishlistCardIds, removeFromWishlist } from "../supabase.ts";
+import { humanDelay } from "../wikimasters/stealth.ts";
+import { getMyCollectionDirect, getPublicCards, getTaggedUserCardIds, getWishlistCardIds, removeFromWishlist } from "../wikimasters/supabase.ts";
 
 /**
  * @dangerous Discard every unstarred, untagged C-rarity card (+1 wikibidou each).

@@ -70,14 +70,14 @@ need a create to leak their chunk names, which spends daily quota.
   cookie chunk round-trip.
 - Multi-account (`​.session.<name>.json` profiles) + TUI dashboard.
 - Battle/duel bot gameplay — transport + realtime room feed done
-  (`src/realtime.ts`); blocked on quiz answering above.
+  (`src/wikimasters/realtime.ts`); blocked on quiz answering above.
 
 ## Telegram supervisor (built 2026-09-22, partially verified)
 - `bun run index.ts telegram` = daemon: polling + owner gate + commands.
   Needs `TELEGRAM_BOT_TOKEN` + `TELEGRAM_OWNER_ID` in `.env`
   (`TELEGRAM_LOGS=1` for background pushes). Watch the `.env` key spelling
   (`TELEGRAM_OWNER_ID`, not `OWNED` — bitten once).
-- Single `auto` job (`src/jobs.ts`, manual start, regen-aware sleeps,
+- Single `auto` job (`src/bot/jobs.ts`, manual start, regen-aware sleeps,
   auto-stop after 5 failures): `/auto_start` / `/auto_stop` / `/auto_status`.
 - Slash menu with emojis via `setMyCommands` (retried 3× — boot flaps);
   `/menu` button submenus (Packs/Market/Collection/Daemon), dangerous flows

@@ -1,6 +1,6 @@
 // Pack commands: status, open, claim, loop.
 import { MAX_PACKS, PACK_REGEN_MS, PACK_REGEN_PRO_MS } from "../config.ts";
-import { ensureSession } from "../session.ts";
+import { ensureSession } from "../wikimasters/session.ts";
 import {
   claimGracePack,
   claimProDaily,
@@ -12,10 +12,10 @@ import {
   needsHumanVerify,
   openPack,
   verifyHuman,
-} from "../api.ts";
-import type { Profile, WikiSession } from "../types.ts";
+} from "../wikimasters/api.ts";
+import type { Profile, WikiSession } from "../wikimasters/types.ts";
 import { fmtCard, log, sleep } from "../core.ts";
-import { humanDelay, jitter } from "../stealth.ts";
+import { humanDelay, jitter } from "../wikimasters/stealth.ts";
 import { cmdSettle } from "./market.ts";
 
 export async function cmdStatus(): Promise<void> {

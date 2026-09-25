@@ -1,8 +1,8 @@
 // Shared runtime: timestamped log fan-out, log capture for bot replies,
 // async mutex, sleep, card formatting. Imported by commands, jobs and the
 // Telegram bot — never imports them (no cycles).
-import { queueLogLine } from "./notify.ts";
-import type { PackCard } from "./types.ts";
+import { queueLogLine } from "./bot/notify.ts";
+import type { PackCard } from "./wikimasters/types.ts";
 
 let logBuffer: string[] | null = null;
 

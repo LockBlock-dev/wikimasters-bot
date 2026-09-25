@@ -1,13 +1,13 @@
 import { isDryRun } from "./src/config.ts";
-import { ensureSession, loadSession, refreshSession } from "./src/session.ts";
-import { verifyHuman } from "./src/api.ts";
+import { ensureSession, loadSession, refreshSession } from "./src/wikimasters/session.ts";
+import { verifyHuman } from "./src/wikimasters/api.ts";
 import { log } from "./src/core.ts";
 import { cmdClaim, cmdLoop, cmdOpen, cmdStatus } from "./src/commands/packs.ts";
 import { cmdBid, cmdSettle, cmdTop } from "./src/commands/market.ts";
 import { cmdRecycle, cmdWishlistClean } from "./src/commands/collection.ts";
 import { cmdNotify, cmdWatch } from "./src/commands/monitor.ts";
 import { cmdBootstrap, cmdLogin } from "./src/commands/session.ts";
-import { startTelegramBot } from "./src/telegram.ts";
+import { startTelegramBot } from "./src/bot/telegram.ts";
 
 function usage(): void {
   console.log(`wikimasters-bot (Bun TS) — safe: read-only + pack opening. No sell/discard/delete.

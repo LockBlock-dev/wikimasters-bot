@@ -4,9 +4,9 @@
 // State: .notifications-seen.json (git-ignored) holds seen notification ids.
 // Target: TELEGRAM_BOT_TOKEN + TELEGRAM_OWNER_ID env (.env), gated on
 // TELEGRAM_LOGS=1. Without it, events only log.
-import { SEEN_NOTIFICATIONS_FILE } from "./config.ts";
-import { getMyNotifications } from "./supabase.ts";
-import type { NotificationItem, WikiSession } from "./types.ts";
+import { SEEN_NOTIFICATIONS_FILE } from "../config.ts";
+import { getMyNotifications } from "../wikimasters/supabase.ts";
+import type { NotificationItem, WikiSession } from "../wikimasters/types.ts";
 
 /** Notification types forwarded to Telegram. Observed live 2026-09-22:
 // marketplace_wishlist_listed, marketplace_auction_won. Plan adds

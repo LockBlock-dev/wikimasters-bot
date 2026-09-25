@@ -1,4 +1,4 @@
-import { COOKIE_BASE, SESSION_FILE, SUPABASE_ANON_KEY, SUPABASE_URL, env } from "./config.ts";
+import { COOKIE_BASE, SESSION_FILE, SUPABASE_ANON_KEY, SUPABASE_URL, env } from "../config.ts";
 import type { WikiSession } from "./types.ts";
 
 export async function loadSession(): Promise<WikiSession | null> {

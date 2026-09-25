@@ -6,7 +6,7 @@ Ideas backlog. Risk legend: ✅ safe (read-only / free) · ⚠️ dangerous (spe
 
 ### 1. Pro-daily + special packs auto-claim ✅
 - Endpoints: `GET/POST /api/packs/pro-daily`, `GET/POST /api/packs/special` (`GET /api/packs/grace` is VIP-only, expect 403).
-- Add `claimProDaily()` / `claimSpecialPack()` to `src/api.ts` + `ProPackResult` types in `src/types.ts`.
+- Add `claimProDaily()` / `claimSpecialPack()` to `src/wikimasters/api.ts` + `ProPackResult` types in `src/wikimasters/types.ts`.
 - Wire into the `loop` command: check eligibility each iteration, claim when available.
 - Free cards, no spend.
 
@@ -26,7 +26,7 @@ Ideas backlog. Risk legend: ✅ safe (read-only / free) · ⚠️ dangerous (spe
 
 ### 5. Notifications daemon ✅
 - Poll `/api/notifications`, track seen ids, push `marketplace_outbid` / `auction_won` / `auction_sold` events to Telegram.
-- New module: `src/notify.ts`.
+- New module: `src/bot/notify.ts`.
 
 ### 6. Dry-run mode ✅
 - Global `--dry-run` flag / `DRY_RUN=1` env: dangerous functions log the request instead of sending it.

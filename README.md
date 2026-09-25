@@ -16,15 +16,19 @@ bun run index.ts status
 Reads go **direct to Supabase** wherever RLS allows (collection, market
 pricing, notifications, trades, chat, achievements, tags); `/api` is used only
 where server logic lives (packs, bids/settles/discards, claims, billing).
-`src/api.ts` keeps every route wrapper, but bot code prefers the direct path.
+`src/wikimasters/api.ts` keeps every route wrapper, but bot code prefers the direct path.
 
 - `src/commands/` — `packs`, `market`, `collection`, `monitor`, `session`
   (`index.ts` is dispatch only; shared runtime in `src/core.ts`).
-- `src/client.ts` — `WikiClient` session holder; `src/realtime.ts` —
-  `RealtimeManager` (socket + resubscribing factories) plus channel helpers;
-  `src/jobs.ts` — `AutoJob` state machine.
-- `src/stealth.ts` — browser headers, jittered delays, paced requests
-  (see below).
+- `src/wikimasters/` — raw site layer: `api.ts` (route wrappers),
+  `supabase.ts` (direct reads/writes), `realtime.ts` (`RealtimeManager`
+  socket + resubscribing factories plus channel helpers), `session.ts`,
+  `client.ts` (`WikiClient` session holder), `stealth.ts` (browser headers,
+  jittered delays, paced requests — see below), `types.ts` (site shapes).
+  Bot code never touches the site except through here.
+- `src/bot/` — control plane: `telegram.ts` (owner-gated daemon),
+  `jobs.ts` (`AutoJob` + notify-live state machines), `notify.ts`
+  (notification forwarding + log sinks).
 - `wm/` — reverse-engineering notes (`README.md`) + captured site chunks.
   Live browser material (`*.har`, `ws.txt`, `curl.txt`) is git-ignored.
 

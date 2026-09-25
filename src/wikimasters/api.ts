@@ -1,4 +1,4 @@
-import { SITE_URL, isDryRun } from "./config.ts";
+import { SITE_URL, isDryRun } from "../config.ts";
 import { browserHeaders } from "./stealth.ts";
 import { supabaseRpc } from "./supabase.ts";
 import { buildWikiCookie } from "./session.ts";

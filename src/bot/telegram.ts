@@ -4,13 +4,13 @@
 // using the frozen IDs/decisions from the preview (bid decisions are
 // revalidated against live prices at confirm time).
 import { Bot, Context, InlineKeyboard } from "grammy";
-import { env } from "./config.ts";
+import { env } from "../config.ts";
 import { addLogSink, setLogSinksPaused } from "./notify.ts";
-import { captureLogs, runExclusive } from "./core.ts";
-import { cmdClaim, cmdOpen, cmdStatus } from "./commands/packs.ts";
-import { cmdBid, cmdSettle, cmdTop, type BidDecision, type BidOpts } from "./commands/market.ts";
-import { cmdRecycle, cmdWishlistClean } from "./commands/collection.ts";
-import { cmdNotify, cmdWatch } from "./commands/monitor.ts";
+import { captureLogs, runExclusive } from "../core.ts";
+import { cmdClaim, cmdOpen, cmdStatus } from "../commands/packs.ts";
+import { cmdBid, cmdSettle, cmdTop, type BidDecision, type BidOpts } from "../commands/market.ts";
+import { cmdRecycle, cmdWishlistClean } from "../commands/collection.ts";
+import { cmdNotify, cmdWatch } from "../commands/monitor.ts";
 import { getAutoStatus, startAuto, stopAuto } from "./jobs.ts";
 
 const TG_CHUNK = 4000;

@@ -1,10 +1,10 @@
 // Market commands: top (valuation), bid (auto-bidder), settle (collect wins).
 import { isDryRun } from "../config.ts";
-import { ensureSession } from "../session.ts";
-import { minNextBid, placeBid, settleAuction } from "../api.ts";
-import type { Auction } from "../types.ts";
+import { ensureSession } from "../wikimasters/session.ts";
+import { minNextBid, placeBid, settleAuction } from "../wikimasters/api.ts";
+import type { Auction } from "../wikimasters/types.ts";
 import { log } from "../core.ts";
-import { humanDelay } from "../stealth.ts";
+import { humanDelay } from "../wikimasters/stealth.ts";
 import {
   browseAuctionsDirect,
   getAuctionRow,
@@ -14,7 +14,7 @@ import {
   getSettledSales,
   getTaggedUserCardIds,
   statsForSales,
-} from "../supabase.ts";
+} from "../wikimasters/supabase.ts";
 
 export interface TopOpts {
   excludeStarred?: boolean;

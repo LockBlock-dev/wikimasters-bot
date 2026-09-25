@@ -2,7 +2,7 @@
 // The site itself uses this path for tags, stars, wishlist and collection
 // reads — there is no /api route for these. Reads use RLS (user-scoped).
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { SUPABASE_ANON_KEY, SUPABASE_URL, isDryRun } from "./config.ts";
+import { SUPABASE_ANON_KEY, SUPABASE_URL, isDryRun } from "../config.ts";
 import { SUPABASE_CLIENT_INFO, humanDelay, supabaseHeaders } from "./stealth.ts";
 import type {
   Achievement,
@@ -25,7 +25,7 @@ export function supabaseFor(session: WikiSession): SupabaseClient {
     global: {
       headers: {
         Authorization: `Bearer ${session.access_token}`,
-        // Blend with the site's own browser client (cf. src/stealth.ts).
+        // Blend with the site's own browser client (cf. src/wikimasters/stealth.ts).
         "X-Client-Info": SUPABASE_CLIENT_INFO,
         ...supabaseHeaders(),
       },

@@ -1,15 +1,15 @@
 // Monitor commands: watch (one-shot snapshot) and notify (live realtime feed
 // + periodic resync safety net).
 import { env } from "../config.ts";
-import { ensureSession } from "../session.ts";
-import { getProDailyStatus, getSpecialPacks } from "../api.ts";
-import type { NotificationItem } from "../types.ts";
+import { ensureSession } from "../wikimasters/session.ts";
+import { getProDailyStatus, getSpecialPacks } from "../wikimasters/api.ts";
+import type { NotificationItem } from "../wikimasters/types.ts";
 import { log } from "../core.ts";
-import { jitteredSleep } from "../stealth.ts";
-import { checkNotifications, handleLiveNotification } from "../notify.ts";
-import { RealtimeManager, subscribeNotifications } from "../realtime.ts";
-import { WikiClient } from "../client.ts";
-import { getMyMarketBuckets, getMyNotifications, getMyTrades } from "../supabase.ts";
+import { jitteredSleep } from "../wikimasters/stealth.ts";
+import { checkNotifications, handleLiveNotification } from "../bot/notify.ts";
+import { RealtimeManager, subscribeNotifications } from "../wikimasters/realtime.ts";
+import { WikiClient } from "../wikimasters/client.ts";
+import { getMyMarketBuckets, getMyNotifications, getMyTrades } from "../wikimasters/supabase.ts";
 
 export async function cmdWatch(): Promise<void> {
   const s = await ensureSession();
