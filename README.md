@@ -8,7 +8,7 @@ action is preview-first with explicit confirmation.
 ```bash
 bun install
 cp .env.example .env  # then fill EMAIL, PASSWORD, … (see below)
-bun run index.ts status
+bun run src/index.ts status
 ```
 
 ## Architecture
@@ -19,7 +19,7 @@ where server logic lives (packs, bids/settles/discards, claims, billing).
 `src/wikimasters/api.ts` keeps every route wrapper, but bot code prefers the direct path.
 
 - `src/commands/` — `packs`, `market`, `collection`, `monitor`, `session`
-  (`index.ts` is dispatch only; shared runtime in `src/core.ts`).
+  (`src/index.ts` is dispatch only; shared runtime in `src/core.ts`).
 - `src/wikimasters/` — raw site layer: `api.ts` (route wrappers),
   `supabase.ts` (direct reads/writes), `realtime.ts` (`RealtimeManager`
   socket + resubscribing factories plus channel helpers), `session.ts`,
@@ -77,11 +77,11 @@ where server logic lives (packs, bids/settles/discards, claims, billing).
 | `DRY_RUN=1` | Same as `--dry-run` |
 
 Session: `.session.json` (auto-refreshed, git-ignored). First run with no
-session: `bun run index.ts bootstrap --cookie-file curl.txt`.
+session: `bun run src/index.ts bootstrap --cookie-file curl.txt`.
 
 ## Telegram daemon
 
-`bun run index.ts telegram` — owner-gated polling bot (`TELEGRAM_OWNER_ID`
+`bun run src/index.ts telegram` — owner-gated polling bot (`TELEGRAM_OWNER_ID`
 checked on every update, strangers dropped silently). Slash menu with emojis
 (`setMyCommands`), `/menu` button submenus (Packs/Market/Collection/Daemon),
 single `auto` job (verify + claim + settle + open, regen-aware) with the
@@ -89,3 +89,20 @@ live notifications feed running alongside it (realtime + resync safety net,
 same as `notify` live mode):
 `/auto_start` · `/auto_stop` · `/auto_status`. All handlers and job ticks
 share one mutex, so replies never interleave.
+
+## Docker
+
+Multi-stage image (Bun `1.4.2` pinned, `ARG BUN_VERSION` to bump): typecheck
++ single-file bundle, then `oven/bun:1.4.2-alpine` runtime (~130MB, no
+`node_modules`). Defaults to the Telegram daemon; pass any bot command
+instead for one-shots.
+
+```bash
+docker build -t wikimasters-bot .
+touch data/.session.json data/.bid-spend.json  # bind-mounts need real files
+docker run -d --name wm --env-file .env \
+  -v ./data/.session.json:/app/.session.json \
+  -v ./data/.bid-spend.json:/app/.bid-spend.json \
+  wikimasters-bot
+docker run --rm --env-file .env wikimasters-bot status
+```

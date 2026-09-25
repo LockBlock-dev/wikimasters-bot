@@ -1,5 +1,5 @@
 // Market commands: top (valuation), bid (auto-bidder), settle (collect wins).
-import { isDryRun } from "../config.ts";
+import { BID_SPEND_FILE, isDryRun } from "../config.ts";
 import { ensureSession } from "../wikimasters/session.ts";
 import { minNextBid, placeBid, settleAuction } from "../wikimasters/api.ts";
 import type { Auction } from "../wikimasters/types.ts";
@@ -75,8 +75,6 @@ export interface BidOpts {
   limit: number;
   sort: "recent" | "ending_soon";
 }
-
-const BID_SPEND_FILE = Bun.fileURLToPath(new URL("../../.bid-spend.json", import.meta.url));
 
 async function loadBidSpend(): Promise<{ date: string; spent: number }> {
   const today = new Date().toISOString().slice(0, 10);

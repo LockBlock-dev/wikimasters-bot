@@ -4,7 +4,7 @@
 // State: .notifications-seen.json (git-ignored) holds seen notification ids.
 // Target: TELEGRAM_BOT_TOKEN + TELEGRAM_OWNER_ID env (.env), gated on
 // TELEGRAM_LOGS=1. Without it, events only log.
-import { SEEN_NOTIFICATIONS_FILE } from "../config.ts";
+import { SEEN_NOTIFICATIONS_FILE, env } from "../config.ts";
 import { getMyNotifications } from "../wikimasters/supabase.ts";
 import type { NotificationItem, WikiSession } from "../wikimasters/types.ts";
 
@@ -64,6 +64,17 @@ export interface ForwardTargets {
 export interface TelegramTarget {
   botToken: string;
   chatId: string;
+}
+
+/**
+ * Owner push target from env, gated on TELEGRAM_LOGS=1 (same opt-in as the
+ * background log pushes). Undefined = log only. Single source of truth —
+ * monitor.ts and jobs.ts must not rebuild this triple inline.
+ */
+export function resolveTelegramTarget(): TelegramTarget | undefined {
+  const botToken = env("TELEGRAM_BOT_TOKEN");
+  const chatId = env("TELEGRAM_OWNER_ID");
+  return botToken && chatId && env("TELEGRAM_LOGS") === "1" ? { botToken, chatId } : undefined;
 }
 
 /** Plain-text Telegram push (no markdown — card titles contain markup chars). */

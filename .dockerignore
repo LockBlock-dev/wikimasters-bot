@@ -1,0 +1,17 @@
+.git
+node_modules
+dist
+out
+coverage
+
+# secrets + local bot state (mount/provide at runtime instead)
+.env*
+.session.json
+.notifications-seen.json
+.bid-spend.json
+
+# live browser captures (untracked, machine-local)
+ws/
+
+.DS_Store
+.idea

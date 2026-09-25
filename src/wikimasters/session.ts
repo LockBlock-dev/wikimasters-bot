@@ -76,7 +76,7 @@ export async function ensureSession(): Promise<WikiSession> {
       await saveSession(s);
     } else {
       throw new Error(
-        "No session found (.session.json missing). Run `bun run index.ts bootstrap --cookie-file curl.txt` or set SESSION_COOKIE, or run login with CAPTCHA_TOKEN env.",
+        "No session found (.session.json missing). Run `bun run src/index.ts bootstrap --cookie-file curl.txt` or set SESSION_COOKIE, or run login with CAPTCHA_TOKEN env.",
       );
     }
   }

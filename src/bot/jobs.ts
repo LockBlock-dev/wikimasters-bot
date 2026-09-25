@@ -6,8 +6,8 @@
 // interleave with Telegram commands.
 import { loopTick, type LoopTickState } from "../commands/packs.ts";
 import { runNotifyLive } from "../commands/monitor.ts";
-import { env } from "../config.ts";
 import { log, runExclusive } from "../core.ts";
+import { resolveTelegramTarget } from "./notify.ts";
 
 export interface AutoStatus {
   running: boolean;
@@ -125,12 +125,6 @@ export class AutoJob {
 // `notify` live mode. Owned by the auto job: started by AutoJob.start(),
 // stopped when auto stops (or crashes past MAX_FAILURES).
 
-function notifyTarget(): { botToken: string; chatId: string } | undefined {
-  const tgToken = env("TELEGRAM_BOT_TOKEN");
-  const tgOwner = env("TELEGRAM_OWNER_ID");
-  return tgToken && tgOwner && env("TELEGRAM_LOGS") === "1" ? { botToken: tgToken, chatId: tgOwner } : undefined;
-}
-
 class NotifyLiveJob {
   private running = false;
   private stopRequested = false;
@@ -175,7 +169,7 @@ class NotifyLiveJob {
   private async loop(resyncS: number): Promise<void> {
     while (!this.stopRequested) {
       try {
-        await runNotifyLive(notifyTarget(), resyncS, () => this.stopRequested);
+        await runNotifyLive(resolveTelegramTarget(), resyncS, () => this.stopRequested);
       } catch (e) {
         if (this.stopRequested) break;
         this.lastOutcome = `error: ${e instanceof Error ? e.message : e} — reconnecting`;

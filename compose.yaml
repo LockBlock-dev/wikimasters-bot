@@ -1,0 +1,18 @@
+# Daemon:  touch data/.session.json data/.bid-spend.json && docker compose up -d --build
+# One-shot: docker compose run --rm bot status
+name: wikimasters
+
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wikimasters-bot
+    env_file:
+      - .env
+    image: wikimasters-bot:latest
+    restart: unless-stopped
+    volumes:
+      - $PWD/data/.session.json:/app/.session.json
+      - $PWD/data/.bid-spend.json:/app/.bid-spend.json
+      - $PWD/data/.notifications-seen.json:/app/.notifications-seen.json

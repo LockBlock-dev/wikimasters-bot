@@ -13,6 +13,11 @@ export const SESSION_FILE = Bun.fileURLToPath(new URL("../.session.json", import
 
 export const SEEN_NOTIFICATIONS_FILE = Bun.fileURLToPath(new URL("../.notifications-seen.json", import.meta.url));
 
+// Daily bidder spend tracker. Lives here (not in commands/market.ts) so the
+// `../` depth holds both in source (src/config.ts) and in the Docker bundle
+// (dist/index.js) — a per-file relative URL would escape the workdir there.
+export const BID_SPEND_FILE = Bun.fileURLToPath(new URL("../.bid-spend.json", import.meta.url));
+
 export function env(name: string): string | undefined {
   const v = Bun.env[name];
   return v && v.length > 0 ? v : undefined;

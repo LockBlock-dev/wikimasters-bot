@@ -1,8 +1,13 @@
 {
   "name": "wikimasters-bot",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "telegram": "bun run src/index.ts telegram",
+    "status": "bun run src/index.ts status",
+    "wm": "bun run src/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },

@@ -1,26 +1,10 @@
 # TODO
 
-## Pending user actions
-- `bun run index.ts recycle --yes` — ~87 unstarred C copies → ~+87 WB (preview verified).
-- `/auto_start` live test — ticks open real packs; run it when ready, then `/auto_stop`.
-- Re-test recycle ✅ confirm after the callback-key + message-length fixes.
-
-## Pending bot verification
-- Recycle confirm end-to-end (colon-key bug fixed, needs live retest).
-- Long-message paths (`/watch`, big previews) after the `chunked()` hard-split
-  + API-layer 4000-char clamp.
-
-## Dropped scope (user decision 2026-09-22)
-- #2 market watcher — skipped for now (bidder covers the pricing logic).
-- #3 pull ledger / P&L — skipped.
-- #4 wishlist auto-fill — useless, the site already does it.
-- #10 trade evaluator — no trading planned, ignored.
-
-## Dropped scope (user decision 2026-09-22)
-- #2 market watcher — skipped for now (bidder covers the pricing logic).
-- #3 pull ledger / P&L — skipped.
-- #4 wishlist auto-fill — useless, the site already does it.
-- #10 trade evaluator — no trading planned, ignored.
+## Dropped scope
+- market watcher — skipped for now (bidder covers the pricing logic).
+- pull ledger / P&L — skipped.
+- wishlist auto-fill — useless, the site already does it.
+- trade evaluator — no trading planned, ignored.
 
 ## 1. Fresh login without a human (Turnstile)
 Password grant needs a Cloudflare Turnstile token, so bot bootstrap/recovery
@@ -42,13 +26,13 @@ HAR Turnstile tokens are single-use + minutes-lived, not replayable.
   us the token or submit the form. If direct browser gets edge-challenged,
   route it via Trawl (`docker compose up`, proxy `:8191`/`:8192`, Redis
   session cache) behind one env var. No Docker needed for v1.
-- Option B: paid solving service (2Captcha-style, ~$1–3/1k solves).
+- Option B: paid solving service (2Captcha-style).
 - Turnstile is best-effort everywhere: fail loudly with a screenshot, never
   hammer retries (failed logins are telemetry-logged).
 - Steady-state is unaffected (refresh-token rotation runs indefinitely;
   browser login only runs when the session actually dies).
 
-## 3. Undiscovered room chunks (duels / parties)
+## 2. Undiscovered room chunks (duels / parties)
 Duel rooms (`/battle/duels/:id`) and party rooms (`/battle/groupe/:code`)
 need a create to leak their chunk names, which spends daily quota.
 - Cheapest path: create → immediately withdraw/cancel to minimize impact.
@@ -57,41 +41,22 @@ need a create to leak their chunk names, which spends daily quota.
 - Needs an active duel/party; don't burn quota just for discovery unless
   there's a real reason to play those rooms.
 
-## 8. Quiz answering (nice to have)
+## 3. Quiz answering (nice to have)
 - The battle wire protocol is complete (`submit_single_answer`
   `{questionId, answerId}`); *winning* needs answering Wikipedia questions
   from article content — an LLM/retrieval problem, separate from transport.
 - Idea: fetch the cited article via the Wikipedia API and answer from it.
 
-## Remaining work (not started)
+## Remaining work
 - Guild tracking — standings (`/api/guilds/zevent-standings` wired) +
   contribution polling. Read-only, small.
 - `bun test` mocks — dry-run blocklist, `minNextBid()`, regen math,
   cookie chunk round-trip.
-- Multi-account (`​.session.<name>.json` profiles) + TUI dashboard.
+- Multi-account (`​.session.<name>.json` profiles)
 - Battle/duel bot gameplay — transport + realtime room feed done
   (`src/wikimasters/realtime.ts`); blocked on quiz answering above.
 
-## Telegram supervisor (built 2026-09-22, partially verified)
-- `bun run index.ts telegram` = daemon: polling + owner gate + commands.
-  Needs `TELEGRAM_BOT_TOKEN` + `TELEGRAM_OWNER_ID` in `.env`
-  (`TELEGRAM_LOGS=1` for background pushes). Watch the `.env` key spelling
-  (`TELEGRAM_OWNER_ID`, not `OWNED` — bitten once).
-- Single `auto` job (`src/bot/jobs.ts`, manual start, regen-aware sleeps,
-  auto-stop after 5 failures): `/auto_start` / `/auto_stop` / `/auto_status`.
-- Slash menu with emojis via `setMyCommands` (retried 3× — boot flaps);
-  `/menu` button submenus (Packs/Market/Collection/Daemon), dangerous flows
-  keep preview + Confirm on frozen IDs.
-- All handlers + job ticks share `runExclusive` (no reply clobbering);
-  single `dispatch()` serves slash + menu buttons.
-- Callback keys are `chatId:seq` — split rejoins everything after the action
-  (bare `[1]` lookup silently expired every confirm — fixed).
-- Outbound Telegram text is clamped to 4000 chars at the `sendMessage` layer
-  + `chunked()` hard-splits; failures log part lengths.
-- Verified live: `/status` round-trip, plain-text log pushes, pack-open push.
-  Pending: confirm flow retest, `/auto_start` live test.
-
-## Known site behavior (verified 2026-09-22)
+## Known site behavior
 - `GET /api/packs/grace` → 405; claim is `POST`-only (403 for non-VIP).
   PLAN.md says "GET … expect 403" — wrong verb, code handles it.
 - `POST /api/packs/pro-daily` → 403 "Réservé aux abonnés PRO" (non-PRO).
@@ -114,4 +79,4 @@ need a create to leak their chunk names, which spends daily quota.
   (3/3/3 match). Server-side auto-settle still observed, so the command is
   usually a harmless top-up.
 - `bun -e '…' --dry-run` swallows the flag (Bun quirk) — use
-  `DRY_RUN=1 bun -e …` or `bun run index.ts … --dry-run`.
+  `DRY_RUN=1 bun -e …` or `bun run src/index.ts … --dry-run`.

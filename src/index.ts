@@ -1,39 +1,39 @@
-import { isDryRun } from "./src/config.ts";
-import { ensureSession, loadSession, refreshSession } from "./src/wikimasters/session.ts";
-import { verifyHuman } from "./src/wikimasters/api.ts";
-import { log } from "./src/core.ts";
-import { cmdClaim, cmdLoop, cmdOpen, cmdStatus } from "./src/commands/packs.ts";
-import { cmdBid, cmdSettle, cmdTop } from "./src/commands/market.ts";
-import { cmdRecycle, cmdWishlistClean } from "./src/commands/collection.ts";
-import { cmdNotify, cmdWatch } from "./src/commands/monitor.ts";
-import { cmdBootstrap, cmdLogin } from "./src/commands/session.ts";
-import { startTelegramBot } from "./src/bot/telegram.ts";
+import { isDryRun } from "./config.ts";
+import { ensureSession, loadSession, refreshSession } from "./wikimasters/session.ts";
+import { verifyHuman } from "./wikimasters/api.ts";
+import { log } from "./core.ts";
+import { cmdClaim, cmdLoop, cmdOpen, cmdStatus } from "./commands/packs.ts";
+import { cmdBid, cmdSettle, cmdTop } from "./commands/market.ts";
+import { cmdRecycle, cmdWishlistClean } from "./commands/collection.ts";
+import { cmdNotify, cmdWatch } from "./commands/monitor.ts";
+import { cmdBootstrap, cmdLogin } from "./commands/session.ts";
+import { startTelegramBot } from "./bot/telegram.ts";
 
 function usage(): void {
   console.log(`wikimasters-bot (Bun TS) — safe: read-only + pack opening. No sell/discard/delete.
 
 Usage:
-  bun run index.ts status                  show profile, packs, collection
-  bun run index.ts open                    open ONE pack now (verifies human if needed)
-  bun run index.ts claim                   claim free pro-daily / special / grace packs when available
-  bun run index.ts verify                  run the {"website":""} human check
-  bun run index.ts loop [--max-opens N]    auto-open packs, waiting for regen
-  bun run index.ts login                   fresh login via EMAIL/PASSWORD + CAPTCHA_TOKEN env
-  bun run index.ts bootstrap [--cookie-file curl.txt]
+  bun run src/index.ts status                  show profile, packs, collection
+  bun run src/index.ts open                    open ONE pack now (verifies human if needed)
+  bun run src/index.ts claim                   claim free pro-daily / special / grace packs when available
+  bun run src/index.ts verify                  run the {"website":""} human check
+  bun run src/index.ts loop [--max-opens N]    auto-open packs, waiting for regen
+  bun run src/index.ts login                   fresh login via EMAIL/PASSWORD + CAPTCHA_TOKEN env
+  bun run src/index.ts bootstrap [--cookie-file curl.txt]
                                            import browser Cookie header -> .session.json
-  bun run index.ts watch                   print notifications/trades/marketplace snapshot
-  bun run index.ts notify [--once] [--interval S]
+  bun run src/index.ts watch                   print notifications/trades/marketplace snapshot
+  bun run src/index.ts notify [--once] [--interval S]
                                            live realtime feed + periodic resync safety net
                                            (--once = single poll, --interval = resync secs)
-  bun run index.ts top [--limit N] [--skip C,PC] [--exclude-starred] [--exclude-tagged]
+  bun run src/index.ts top [--limit N] [--skip C,PC] [--exclude-starred] [--exclude-tagged]
                                            top cards by average market value (commons skipped by default, starred+tagged included)
-  bun run index.ts recycle [--yes] [--limit N]
+  bun run src/index.ts recycle [--yes] [--limit N]
                                            discard ALL untagged unstarred C cards (+1 WB each). Preview without --yes
-  bun run index.ts bid [--yes] [--max-price N] [--factor F] [--min-secs S] [--max-total N] [--limit N] [--sort recent|ending_soon]
+  bun run src/index.ts bid [--yes] [--max-price N] [--factor F] [--min-secs S] [--max-total N] [--limit N] [--sort recent|ending_soon]
                                            auto-bid deals (<= avg*factor). Preview without --yes
-  bun run index.ts settle                  settle finished wins (collect cards/funds)
-  bun run index.ts wishlist-clean [--yes]  drop wishlisted cards you already own. Preview without --yes
-  bun run index.ts telegram                Telegram control bot (needs TELEGRAM_BOT_TOKEN + OWNER_ID)
+  bun run src/index.ts settle                  settle finished wins (collect cards/funds)
+  bun run src/index.ts wishlist-clean [--yes]  drop wishlisted cards you already own. Preview without --yes
+  bun run src/index.ts telegram                Telegram control bot (needs TELEGRAM_BOT_TOKEN + OWNER_ID)
   [--dry-run]                              global: log mutating calls instead of sending
 
 Env (.env): EMAIL, PASSWORD, CAPTCHA_TOKEN (fresh Turnstile token for login),

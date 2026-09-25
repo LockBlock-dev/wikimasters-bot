@@ -1,12 +1,11 @@
 // Monitor commands: watch (one-shot snapshot) and notify (live realtime feed
 // + periodic resync safety net).
-import { env } from "../config.ts";
 import { ensureSession } from "../wikimasters/session.ts";
 import { getProDailyStatus, getSpecialPacks } from "../wikimasters/api.ts";
 import type { NotificationItem } from "../wikimasters/types.ts";
 import { log } from "../core.ts";
 import { jitteredSleep } from "../wikimasters/stealth.ts";
-import { checkNotifications, handleLiveNotification } from "../bot/notify.ts";
+import { checkNotifications, handleLiveNotification, resolveTelegramTarget } from "../bot/notify.ts";
 import { RealtimeManager, subscribeNotifications } from "../wikimasters/realtime.ts";
 import { WikiClient } from "../wikimasters/client.ts";
 import { getMyMarketBuckets, getMyNotifications, getMyTrades } from "../wikimasters/supabase.ts";
@@ -30,10 +29,7 @@ export async function cmdWatch(): Promise<void> {
 
 export async function cmdNotify(once: boolean, intervalS: number): Promise<void> {
   // Telegram owner push: same opt-in as background log pushes.
-  const tgToken = env("TELEGRAM_BOT_TOKEN");
-  const tgOwner = env("TELEGRAM_OWNER_ID");
-  const telegram =
-    tgToken && tgOwner && env("TELEGRAM_LOGS") === "1" ? { botToken: tgToken, chatId: tgOwner } : undefined;
+  const telegram = resolveTelegramTarget();
   if (!telegram) log("no Telegram target set (needs TELEGRAM_BOT_TOKEN + TELEGRAM_OWNER_ID + TELEGRAM_LOGS=1) — events will only log");
   if (once) {
     const s = await ensureSession();
